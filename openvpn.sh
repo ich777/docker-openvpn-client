@@ -11,9 +11,11 @@
 #          BUGS: ---
 #         NOTES: ---
 #        AUTHOR: David Personette (dperson@gmail.com),
+#        EDITED: Christoph Hummer (admin@minenet.at),
 #  ORGANIZATION:
 #       CREATED: 09/28/2014 12:11
-#      REVISION: 1.0
+#       CHANGED: 01/09/2021
+#      REVISION: 1.1
 #===============================================================================
 
 set -o nounset                              # Treat unset variables as an error
@@ -308,10 +310,10 @@ firewall_cust="$dir/.firewall_cust"
 route="$dir/.firewall"
 route6="$dir/.firewall6"
 export ext_args="--script-security 2 --redirect-gateway def1"
-[[ -f $conf ]] || { [[ $(ls -d $dir/*|egrep '\.(conf|ovpn)$' 2>&-|wc -w) -eq 1 \
-            ]] && conf="$(ls -d $dir/* | egrep '\.(conf|ovpn)$' 2>&-)"; }
-[[ -f $cert ]] || { [[ $(ls -d $dir/* | egrep '\.ce?rt$' 2>&- | wc -w) -eq 1 \
-            ]] && cert="$(ls -d $dir/* | egrep '\.ce?rt$' 2>&-)"; }
+[[ -f $conf ]] || { [[ $(ls -d $dir/*|egrep '\.(conf|ovpn)$' 2>/dev/null|wc -w) -eq 1 \
+            ]] && conf="$(ls -d $dir/* | egrep '\.(conf|ovpn)$' 2>/dev/null)"; }
+[[ -f $cert ]] || { [[ $(ls -d $dir/* | egrep '\.ce?rt$' 2>/dev/null | wc -w) -eq 1 \
+            ]] && cert="$(ls -d $dir/* | egrep '\.ce?rt$' 2>/dev/null)"; }
 
 while getopts ":hc:Ddf:a:m:o:p:R:r:v:" opt; do
     case "$opt" in
@@ -361,7 +363,7 @@ global_return_routes
 [[ -e $auth ]] && ext_args+=" --auth-user-pass $auth"
 [[ -e $cert_auth ]] && ext_args+=" --askpass $cert_auth"
 
-if [[ $# -ge 1 && -x $(which $1 2>&-) ]]; then
+if [[ $# -ge 1 && -x $(which $1 2>/dev/null) ]]; then
     exec "$@"
 elif [[ $# -ge 1 ]]; then
     echo "ERROR: command not found: $1"
