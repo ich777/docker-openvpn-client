@@ -225,7 +225,7 @@ vpn() { local server="$1" user="$2" pass="$3" port="${4:-1194}" proto=${5:-udp}\
     echo "nobind" >>$conf
     echo "persist-key" >>$conf
     echo "persist-tun" >>$conf
-    [[ "${CIPHER:-}" ]] && echo "cipher $CIPHER" >>$conf
+    [[ "${CIPHER:-}" ]] && echo "data-ciphers-fallback $CIPHER" >>$conf
     [[ "${AUTH:-}" ]] && echo "auth $AUTH" >>$conf
     echo "tls-client" >>$conf
     echo "remote-cert-tls server" >>$conf
