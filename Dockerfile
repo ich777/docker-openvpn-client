@@ -4,7 +4,7 @@ LABEL maintainer="admin@minenet.at"
 
 # Install openvpn
 RUN apt-get update && \
-    apt-get -y install --no-install-recommends curl openvpn tzdata iptables && \
+    apt-get -y install --no-install-recommends curl openvpn tzdata iptables kmod && \
     rm -rf /var/lib/apt/lists/*
 
 RUN useradd -s /bin/bash vpn
