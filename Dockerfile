@@ -1,18 +1,18 @@
-FROM alpine
-MAINTAINER David Personette <dperson@gmail.com>
+FROM ich777/debian-baseimage
+
+LABEL maintainer="admin@minenet.at"
 
 # Install openvpn
-RUN apk --no-cache --no-progress upgrade && \
-    apk --no-cache --no-progress add bash curl ip6tables iptables openvpn \
-                shadow tini tzdata && \
-    addgroup -S vpn && \
-    rm -rf /tmp/*
+RUN apt-get update && \
+    apt-get -y install --no-install-recommends curl ip6tables iptables openvpn shadow tzdata && \
+    rm -rf /var/lib/apt/lists/*
+    useradd -s /bin/bash vpn
 
-COPY openvpn.sh /usr/bin/
+ADD openvpn.sh /opt/scripts/
 
 HEALTHCHECK --interval=60s --timeout=15s --start-period=120s \
              CMD curl -LSs 'https://api.ipify.org'
 
 VOLUME ["/vpn"]
 
-ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/openvpn.sh"]
+ENTRYPOINT ["/opt/scripts/start.sh"]
