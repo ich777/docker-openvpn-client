@@ -44,10 +44,15 @@ dns() {
 # Arguments:
 #   port) optional port that will be used to connect to VPN (should auto detect)
 # Return: configured firewall
+if [ "${DISABLE_IPV6" != "true" ]; then
 firewall() { local port="${1:-1194}" docker_network="$(ip -o addr show dev eth0|
             awk '$3 == "inet" {print $4}')" \
             docker6_network="$(ip -o addr show dev eth0 |
             awk '$3 == "inet6" {print $4; exit}')"
+else
+firewall() { local port="${1:-1194}" docker_network="$(ip -o addr show dev eth0|
+            awk '$3 == "inet" {print $4}')"
+fi
     [[ -z "${1:-}" && -r $conf ]] &&
         port="$(awk -F"[\r\t ]+" '/^remote/ && $3~/^[0-9]+$/ {print $3}' $conf |
                     uniq | grep ^ || echo 1194)"
