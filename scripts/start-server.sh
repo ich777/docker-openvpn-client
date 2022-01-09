@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #===============================================================================
 #          FILE: openvpn.sh
 #
@@ -44,57 +44,49 @@ dns() {
 # Arguments:
 #   port) optional port that will be used to connect to VPN (should auto detect)
 # Return: configured firewall
-if [ "${DISABLE_IPV6" != "true" ]; then
 firewall() { local port="${1:-1194}" docker_network="$(ip -o addr show dev eth0|
             awk '$3 == "inet" {print $4}')" \
             docker6_network="$(ip -o addr show dev eth0 |
             awk '$3 == "inet6" {print $4; exit}')"
-else
-firewall() { local port="${1:-1194}" docker_network="$(ip -o addr show dev eth0|
-            awk '$3 == "inet" {print $4}')"
-fi
     [[ -z "${1:-}" && -r $conf ]] &&
         port="$(awk -F"[\r\t ]+" '/^remote/ && $3~/^[0-9]+$/ {print $3}' $conf |
                     uniq | grep ^ || echo 1194)"
 
-    if [ "${DISABLE_IPV6" != "true" ]; then
-        test -f /proc/net/if_inet6 && { lsmod |grep -qF ip6table_filter || { \
-            echo "WARNING: ip6tables disabled!"
-            echo "Run 'sudo modprobe ip6table_filter' on your host"; };}
+    test -f /proc/net/if_inet6 && { lsmod |grep -qF ip6table_filter || { \
+        echo "WARNING: ip6tables disabled!"
+        echo "Run 'sudo modprobe ip6table_filter' on your host"; };}
 
-        ip6tables -F 2>/dev/null
-        ip6tables -X 2>/dev/null
-        ip6tables -P INPUT DROP 2>/dev/null
-        ip6tables -P FORWARD DROP 2>/dev/null
-        ip6tables -P OUTPUT DROP 2>/dev/null
-        ip6tables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT \
-                    2>/dev/null
-        ip6tables -A INPUT -p icmp -j ACCEPT 2>/dev/null
-        ip6tables -A INPUT -i lo -j ACCEPT 2>/dev/null
-        ip6tables -A INPUT -s ${docker6_network} -j ACCEPT 2>/dev/null
-        ip6tables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT \
-                    2>/dev/null
-        ip6tables -A FORWARD -p icmp -j ACCEPT 2>/dev/null
-        ip6tables -A FORWARD -i lo -j ACCEPT 2>/dev/null
-        ip6tables -A FORWARD -d ${docker6_network} -j ACCEPT 2>/dev/null
-        ip6tables -A FORWARD -s ${docker6_network} -j ACCEPT 2>/dev/null
-        ip6tables -A OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT \
-                    2>/dev/null
-        ip6tables -A OUTPUT -o lo -j ACCEPT 2>/dev/null
-        ip6tables -A OUTPUT -o tap+ -j ACCEPT 2>/dev/null
-        ip6tables -A OUTPUT -o tun+ -j ACCEPT 2>/dev/null
-        ip6tables -A OUTPUT -d ${docker6_network} -j ACCEPT 2>/dev/null
-        ip6tables -A OUTPUT -p tcp -m owner --gid-owner vpn -j ACCEPT 2>/dev/null &&
-        ip6tables -A OUTPUT -p udp -m owner --gid-owner vpn -j ACCEPT 2>/dev/null||{
-            for i in $port; do
-                ip6tables -A OUTPUT -p tcp -m tcp --dport $i -j ACCEPT 2>/dev/null
-                ip6tables -A OUTPUT -p udp -m udp --dport $i -j ACCEPT 2>/dev/null
-            done
-            ip6tables -A OUTPUT -p udp -m udp --dport 53 -j ACCEPT 2>/dev/null; }
-        ip6tables -t nat -A POSTROUTING -o tap+ -j MASQUERADE
-        ip6tables -t nat -A POSTROUTING -o tun+ -j MASQUERADE
-    fi
-
+    ip6tables -F 2>/dev/null
+    ip6tables -X 2>/dev/null
+    ip6tables -P INPUT DROP 2>/dev/null
+    ip6tables -P FORWARD DROP 2>/dev/null
+    ip6tables -P OUTPUT DROP 2>/dev/null
+    ip6tables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT \
+                2>/dev/null
+    ip6tables -A INPUT -p icmp -j ACCEPT 2>/dev/null
+    ip6tables -A INPUT -i lo -j ACCEPT 2>/dev/null
+    ip6tables -A INPUT -s ${docker6_network} -j ACCEPT 2>/dev/null
+    ip6tables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT \
+                2>/dev/null
+    ip6tables -A FORWARD -p icmp -j ACCEPT 2>/dev/null
+    ip6tables -A FORWARD -i lo -j ACCEPT 2>/dev/null
+    ip6tables -A FORWARD -d ${docker6_network} -j ACCEPT 2>/dev/null
+    ip6tables -A FORWARD -s ${docker6_network} -j ACCEPT 2>/dev/null
+    ip6tables -A OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT \
+                2>/dev/null
+    ip6tables -A OUTPUT -o lo -j ACCEPT 2>/dev/null
+    ip6tables -A OUTPUT -o tap+ -j ACCEPT 2>/dev/null
+    ip6tables -A OUTPUT -o tun+ -j ACCEPT 2>/dev/null
+    ip6tables -A OUTPUT -d ${docker6_network} -j ACCEPT 2>/dev/null
+    ip6tables -A OUTPUT -p tcp -m owner --gid-owner vpn -j ACCEPT 2>/dev/null &&
+    ip6tables -A OUTPUT -p udp -m owner --gid-owner vpn -j ACCEPT 2>/dev/null||{
+        for i in $port; do
+            ip6tables -A OUTPUT -p tcp -m tcp --dport $i -j ACCEPT 2>/dev/null
+            ip6tables -A OUTPUT -p udp -m udp --dport $i -j ACCEPT 2>/dev/null
+        done
+        ip6tables -A OUTPUT -p udp -m udp --dport 53 -j ACCEPT 2>/dev/null; }
+    ip6tables -t nat -A POSTROUTING -o tap+ -j MASQUERADE
+    ip6tables -t nat -A POSTROUTING -o tun+ -j MASQUERADE
     iptables -F
     iptables -X
     iptables -P INPUT DROP
@@ -140,30 +132,22 @@ fi
 # Arguments:
 #   none)
 # Return: configured return routes
-if [ "${DISABLE_IPV6" != "true" ]; then
-    global_return_routes() { local if=$(ip r | awk '/^default/ {print $5; quit}')
-        local gw6="$(ip -6 r show dev $if | awk '/default/ {print $3}')" \
-        gw="$(ip -4 r show dev $if | awk '/default/ {print $3}')" \
-        ip6=$(ip -6 a show dev $if | awk -F '[ \t/]+' '/inet6.*global/ {print $3}')\
-        ip=$(ip -4 a show dev $if | awk -F '[ \t/]+' '/inet .*global/ {print $3}')
-else
-    global_return_routes() { local if=$(ip r | awk '/^default/ {print $5; quit}')
-        gw="$(ip -4 r show dev $if | awk '/default/ {print $3}')" \
-        ip=$(ip -4 a show dev $if | awk -F '[ \t/]+' '/inet .*global/ {print $3}')
-fi
+global_return_routes() { local if=$(ip r | awk '/^default/ {print $5; quit}')
+    local gw6="$(ip -6 r show dev $if | awk '/default/ {print $3}')" \
+    gw="$(ip -4 r show dev $if | awk '/default/ {print $3}')" \
+    ip6=$(ip -6 a show dev $if | awk -F '[ \t/]+' '/inet6.*global/ {print $3}')\
+    ip=$(ip -4 a show dev $if | awk -F '[ \t/]+' '/inet .*global/ {print $3}')
 
-    if [ "${DISABLE_IPV6" != "true" ]; then
-        for i in $ip6; do
-            ip -6 rule show table 10 | grep -q "$i\\>" ||
-                ip -6 rule add from $i lookup 10
-            ip6tables -S 2>/dev/null | grep -q "$i\\>" ||
-                ip6tables -A INPUT -d $i -j ACCEPT 2>/dev/null
-        done
-        for i in $gw6; do
-            ip -6 route show table 10 | grep -q "$i\\>" ||
-                ip -6 route add default via $i table 10
-        done
-    fi
+    for i in $ip6; do
+        ip -6 rule show table 10 | grep -q "$i\\>" ||
+            ip -6 rule add from $i lookup 10
+        ip6tables -S 2>/dev/null | grep -q "$i\\>" ||
+            ip6tables -A INPUT -d $i -j ACCEPT 2>/dev/null
+    done
+    for i in $gw6; do
+        ip -6 route show table 10 | grep -q "$i\\>" ||
+            ip -6 route add default via $i table 10
+    done
 
     for i in $ip; do
         ip -4 rule show table 10 | grep -q "$i\\>" ||
@@ -176,23 +160,21 @@ fi
     done
 }
 
-if [ "${DISABLE_IPV6" != "true" ]; then
-    ### return_route: add a route back to your network, so that return traffic works
-    # Arguments:
-    #   network) a CIDR specified network range
-    # Return: configured return route
-    return_route6() { local network="$1" gw="$(ip -6 route |
-                    awk '/default/ {print $3}')"
-        echo "The use of ROUTE6 or -R may no longer be needed, try it without!!"
-        ip -6 route | grep -q "$network" ||
-            ip -6 route add to $network via $gw dev eth0
-        ip6tables -A INPUT -s $network -j ACCEPT 2>/dev/null
-        ip6tables -A FORWARD -d $network -j ACCEPT 2>/dev/null
-        ip6tables -A FORWARD -s $network -j ACCEPT 2>/dev/null
-        ip6tables -A OUTPUT -d $network -j ACCEPT 2>/dev/null
-        [[ -e $route6 ]] &&grep -q "^$network\$" $route6 ||echo "$network" >>$route6
-    }
-fi
+### return_route: add a route back to your network, so that return traffic works
+# Arguments:
+#   network) a CIDR specified network range
+# Return: configured return route
+return_route6() { local network="$1" gw="$(ip -6 route |
+                awk '/default/ {print $3}')"
+    echo "The use of ROUTE6 or -R may no longer be needed, try it without!!"
+    ip -6 route | grep -q "$network" ||
+        ip -6 route add to $network via $gw dev eth0
+    ip6tables -A INPUT -s $network -j ACCEPT 2>/dev/null
+    ip6tables -A FORWARD -d $network -j ACCEPT 2>/dev/null
+    ip6tables -A FORWARD -s $network -j ACCEPT 2>/dev/null
+    ip6tables -A OUTPUT -d $network -j ACCEPT 2>/dev/null
+    [[ -e $route6 ]] &&grep -q "^$network\$" $route6 ||echo "$network" >>$route6
+}
 
 ### return_route: add a route back to your network, so that return traffic works
 # Arguments:
@@ -267,10 +249,8 @@ vpn() { local server="$1" user="$2" pass="$3" port="${4:-1194}" proto=${5:-udp}\
 #   protocol) optional protocol (defaults to TCP)
 # Return: configured NAT rule
 vpnportforward() { local port="$1" protocol="${2:-tcp}"
-    if [ "${DISABLE_IPV6" != "true" ]; then
-        ip6tables -A INPUT -p $protocol -m $protocol --dport $port -j ACCEPT \
-                    2>/dev/null
-    fi
+    ip6tables -A INPUT -p $protocol -m $protocol --dport $port -j ACCEPT \
+                2>/dev/null
     iptables -A INPUT -p $protocol -m $protocol --dport $port -j ACCEPT
     echo "Setup forwarded port: $port $protocol"
 }
