@@ -257,7 +257,7 @@ The vpn.conf should look like this:
 In case you want to use your client configuration in /vpn named vpn.conf
 but adding your vpn user and password by command line
 
-    docker run -ti --cap-add=NET_ADMIN --sysctl net.ipv6.conf.all.disable_ipv6=0 --device /dev/net/tun --name vpn \
+    docker run -ti --cap-add=NET_ADMIN --sysctl net.ipv6.conf.all.disable_ipv6=0 --device /dev/net/tun --name OpenVPN-Client \
             -v /path/to/vpn:/vpn -d ich777/openvpn-client -a 'username;password'
 
 # User Feedback
