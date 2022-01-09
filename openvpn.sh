@@ -209,7 +209,7 @@ vpn_auth() { local user="$1" pass="$2"
 #   proto) protocol to connect to VPN (optional)
 # Return: configured .ovpn file
 vpn() { local server="$1" user="$2" pass="$3" port="${4:-1194}" proto=${5:-udp}\
-            i pem="$(\ls $dir/*.pem 2>&-)"
+            i pem="$(\ls $dir/*.pem 2>/dev/null)"
 
     echo "client" >$conf
     echo "dev tun" >>$conf
