@@ -1,11 +1,4 @@
 #!/bin/bash
-echo "---Checking if UID: ${UID} matches user---"
-usermod -u ${UID} ${USER}
-echo "---Checking if GID: ${GID} matches user---"
-usermod -g ${GID} ${USER}
-echo "---Setting umask to ${UMASK}---"
-umask ${UMASK}
-
 echo "---Checking for optional scripts---"
 if [ -f /opt/scripts/user.sh ]; then
 	echo "---Found optional script, executing---"
@@ -18,7 +11,6 @@ fi
 echo "---Starting...---"
 chown -R root:${GID} /opt/scripts
 chmod -R 750 /opt/scripts
-chown -R ${UID}:${GID} ${DATA_DIR}
 
 term_handler() {
 	kill -SIGINT "$killpid"
