@@ -6,7 +6,8 @@ LABEL maintainer="admin@minenet.at"
 RUN apt-get update && \
     apt-get -y install --no-install-recommends curl ip6tables iptables openvpn shadow tzdata && \
     rm -rf /var/lib/apt/lists/*
-    useradd -s /bin/bash vpn
+
+RUN useradd -s /bin/bash vpn
 
 ADD openvpn.sh /opt/scripts/
 
