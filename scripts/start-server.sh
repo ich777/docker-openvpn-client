@@ -14,8 +14,8 @@
 #        EDITED: Christoph Hummer (admin@minenet.at),
 #  ORGANIZATION:
 #       CREATED: 09/28/2014 12:11
-#       CHANGED: 01/09/2021
-#      REVISION: 1.1
+#       CHANGED: 25/09/2022
+#      REVISION: 1.2
 #===============================================================================
 
 set -o nounset                              # Treat unset variables as an error
@@ -36,8 +36,8 @@ cert_auth() { local passwd="$1"
 #   none)
 # Return: openvpn arguments to use VPN provider's DNS resolvers
 dns() {
-    ext_args+=" --up /etc/openvpn/up.sh"
-    ext_args+=" --down /etc/openvpn/down.sh"
+    ext_args+=" --up /etc/openvpn/update-resolv-conf"
+    ext_args+=" --down /etc/openvpn/update-resolv-conf"
 }
 
 ### firewall: firewall all output not DNS/VPN that's not over the VPN connection
