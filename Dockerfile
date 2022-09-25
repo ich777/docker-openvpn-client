@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.source="https://github.com/ich777/docker-openvpn-
 
 # Install openvpn
 RUN apt-get update && \
-    apt-get -y install --no-install-recommends curl openvpn tzdata iptables kmod iputils-ping && \
+    apt-get -y install --no-install-recommends curl openvpn tzdata iptables kmod iputils-ping resolvconf && \
     rm -rf /var/lib/apt/lists/*
 
 RUN useradd -s /bin/bash vpn
