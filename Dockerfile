@@ -5,6 +5,7 @@ LABEL org.opencontainers.image.source="https://github.com/ich777/docker-openvpn-
 
 # Install openvpn
 RUN apt-get update && \
+    echo resolvconf resolvconf/linkify-resolvconf boolean false | debconf-set-selections && \
     DEBIAN_FRONTEND=noninteractive apt-get -y install curl openvpn tzdata iptables kmod iputils-ping resolvconf && \
     rm -rf /var/lib/apt/lists/*
 
