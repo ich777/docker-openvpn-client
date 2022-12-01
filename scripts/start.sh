@@ -14,6 +14,8 @@ fi
 echo "---Taking ownership of data...---"
 chown -R root:${GID} /opt/scripts
 chmod -R 750 /opt/scripts
+chown -R ${UID}:${GID} ${DATA_DIR}
+chmod -R ${DATA_PERM} ${DATA_DIR}
 
 echo "---Starting...---"
 term_handler() {
