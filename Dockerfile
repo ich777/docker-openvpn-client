@@ -14,6 +14,11 @@ RUN useradd -s /bin/bash vpn
 ADD /scripts/ /opt/scripts/
 RUN chmod -R 770 /opt/scripts/
 
+ENV UID=99
+ENV GID=100
+ENV DATA_PERM=770
+ENV DATA_DIR=/vpn
+
 HEALTHCHECK --interval=60s --timeout=15s --start-period=120s \
              CMD curl -LSs 'https://api.ipify.org'
 
