@@ -14,6 +14,7 @@ RUN useradd -s /bin/bash vpn
 ADD /scripts/ /opt/scripts/
 RUN chmod -R 770 /opt/scripts/
 
+ENV IF=eth0
 ENV UID=99
 ENV GID=100
 ENV DATA_PERM=770
