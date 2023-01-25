@@ -44,9 +44,9 @@ dns() {
 # Arguments:
 #   port) optional port that will be used to connect to VPN (should auto detect)
 # Return: configured firewall
-firewall() { local port="${1:-1194}" docker_network="$(ip -o addr show dev ${IF}|
+firewall() { local port="${1:-1194}" docker_network="$(ip -o addr show dev ${INTERFACE}|
             awk '$3 == "inet" {print $4}')" \
-            docker6_network="$(ip -o addr show dev ${IF} |
+            docker6_network="$(ip -o addr show dev ${INTERFACE} |
             awk '$3 == "inet6" {print $4; exit}')"
     [[ -z "${1:-}" && -r $conf ]] &&
         port="$(awk -F"[\r\t ]+" '/^remote/ && $3~/^[0-9]+$/ {print $3}' $conf |
@@ -168,7 +168,7 @@ return_route6() { local network="$1" gw="$(ip -6 route |
                 awk '/default/ {print $3}')"
     echo "The use of ROUTE6 or -R may no longer be needed, try it without!!"
     ip -6 route | grep -q "$network" ||
-        ip -6 route add to $network via $gw dev ${IF}
+        ip -6 route add to $network via $gw dev ${INTERFACE}
     ip6tables -A INPUT -s $network -j ACCEPT 2>/dev/null
     ip6tables -A FORWARD -d $network -j ACCEPT 2>/dev/null
     ip6tables -A FORWARD -s $network -j ACCEPT 2>/dev/null
@@ -183,7 +183,7 @@ return_route6() { local network="$1" gw="$(ip -6 route |
 return_route() { local network="$1" gw="$(ip route |awk '/default/ {print $3}')"
     echo "The use of ROUTE or -r may no longer be needed, try it without!"
     ip route | grep -q "$network" ||
-        ip route add to $network via $gw dev ${IF}
+        ip route add to $network via $gw dev ${INTERFACE}
     iptables -A INPUT -s $network -j ACCEPT
     iptables -A FORWARD -d $network -j ACCEPT
     iptables -A FORWARD -s $network -j ACCEPT
