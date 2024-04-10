@@ -42,21 +42,42 @@ container) when you launch the service in its container.
 
 ## Starting an OpenVPN client instance
 
-    docker run -ti --cap-add=NET_ADMIN --sysctl net.ipv6.conf.all.disable_ipv6=1 --device /dev/net/tun --name OpenVPN-Client \
+    docker run -ti --cap-add=NET_ADMIN --sysctl net.ipv6.conf.all.disable_ipv6=1 --device /dev/net/tun --name OpenVPN-Client --restart=unless-stopped \
                 -v /path/to/vpn:/vpn -d ich777/openvpn-client \
                 -v 'vpn.server.name;username;password'
     docker restart OpenVPN-Client
 
 Once it's up other containers can be started using its network connection:
 
-    docker run -ti --net=container:OpenVPN-Client -d some/docker-container
+    docker run -ti --net=container:OpenVPN-Client --restart=unless-stopped -d some/docker-container
+
+
+## Starting an OpenVPN client instance with ping and connected containers
+
+    docker run -ti --cap-add=NET_ADMIN --sysctl net.ipv6.conf.all.disable_ipv6=1 --device /dev/net/tun --name OpenVPN-Client --restart=unless-stopped \
+                -e CONNECTED_CONTAINERS=27286 \
+                -e PING_IP=8.8.8.8 \
+                -e PING_INTERVAL=300 \
+                -v /path/to/vpn:/vpn -d ich777/openvpn-client \
+                -v 'vpn.server.name;username;password'
+    docker restart OpenVPN-Client
+
+Once it's up other compatible containers can be started using its network connection:
+
+    docker run -ti --net=container:OpenVPN-Client --restart=unless-stopped \
+                -e CONNECTED_CONTAINERS=127.0.0.1:27286 \
+                -d some/docker-container
+
+This will notify the connected container through connected containers to kill itself and start again (only if you start it like in the example with `--restart=unless-stopped`)
+
+##
 
 ## Local Network access to services connecting to the internet through the VPN.
 
 However to access them from your normal network (off the 'local' docker bridge),
 you'll also need to run a web proxy, like so:
 
-    docker run -ti --name web -p 80:80 -p 443:443 \
+    docker run -ti --name web -p 80:80 -p 443:443 --restart=unless-stopped \
                 --link OpenVPN-Client:<service_name> -d binhex/arch-nginx \
                 -w "http://<service_name>:<PORT>/<URI>;/<PATH>"
 
@@ -64,15 +85,15 @@ Which will start a Nginx web server on local ports 80 and 443, and proxy any
 requests under `/<PATH>` to the to `http://<service_name>:<PORT>/<URI>`. To use
 a concrete example:
 
-    docker run -ti --name bit --net=container:OpenVPN-Client -d binhex/arch-delugevpn
-    docker run -ti --name web -p 80:80 -p 443:443 --link OpenVPN-Client:bit \
+    docker run -ti --name bit --net=container:OpenVPN-Client --restart=unless-stopped -d binhex/arch-delugevpn
+    docker run -ti --name web -p 80:80 -p 443:443 --restart=unless-stopped --link OpenVPN-Client:bit \
                 -d binhex/arch-nginx -w "http://bit:9091/transmission;/transmission"
 
 For multiple services (non-existant 'foo' used as an example):
 
-    docker run -ti --name bit --net=container:OpenVPN-Client -d binhex/arch-delugevpn
-    docker run -ti --name foo --net=container:OpenVPN-Client -d ich777/foo
-    docker run -ti --name web -p 80:80 -p 443:443 --link OpenVPN-Client:bit \
+    docker run -ti --name bit --net=container:OpenVPN-Client --restart=unless-stopped -d binhex/arch-delugevpn
+    docker run -ti --name foo --net=container:OpenVPN-Client --restart=unless-stopped -d ich777/foo
+    docker run -ti --name web -p 80:80 -p 443:443 --restart=unless-stopped --link OpenVPN-Client:bit \
                 --link vpn:foo -d binhex/arch-nginx \
                 -w "http://bit:9091/transmission;/transmission" \
                 -w "http://foo:8000/foo;/foo"
@@ -85,7 +106,7 @@ Running the following on your docker host should give you the correct network:
 `ip route | awk '!/ (docker0|br-)/ && /src/ {print $1}'`
 
     cp /path/to/vpn/vpn.crt /some/path/vpn-ca.crt
-    docker run -ti --cap-add=NET_ADMIN --sysctl net.ipv6.conf.all.disable_ipv6=1 --device /dev/net/tun --name OpenVPN-Client \
+    docker run -ti --cap-add=NET_ADMIN --sysctl net.ipv6.conf.all.disable_ipv6=1 --device /dev/net/tun --restart=unless-stopped --name OpenVPN-Client \
                 -v /path/to/vpn:/vpn -d ich777/openvpn-client \
                 -r 192.168.1.0/24 -v 'vpn.server.name;username;password'
 
@@ -153,6 +174,9 @@ ENVIRONMENT VARIABLES
  * `VPN_AUTH` - As above (-a) provide authentication to vpn server
  * `VPNPORT` - As above (-p) setup port forwarding (See NOTE below)
  * `GROUPID` - Set the GID for the vpn
+ * `CONNECTED_CONTAINERS` - Set up a listen socket for other containers to be notified wehn the container is restarted
+ * `PING_IP` - If empty, no ping check is done (make sure the IP is reachable, container is restarted if ping check fails - this is only working when container is started with `--restart=unless-stopped`)
+ * `PING_INTERVAL` - Set the ping check interval in seconds
 
  **NOTE**: optionally supports additional variables starting with the same name,
  IE `VPNPORT` also will work for `VPNPORT_2`, `VPNPORT_3`... `VPNPORT_x`, etc.
