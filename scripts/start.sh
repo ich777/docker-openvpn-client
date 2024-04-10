@@ -24,7 +24,7 @@ term_handler() {
 	exit 143;
 }
 
-if [ ! -z "${CONNECTED_CONTAINERS_PORT}" ]; then
+if [ ! -z "${CONNECTED_CONTAINERS}" ]; then
   /opt/scripts/start-connected-containers.sh &
 fi
 
