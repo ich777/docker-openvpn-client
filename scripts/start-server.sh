@@ -376,10 +376,10 @@ else
     [[ -e $conf ]] || { echo "ERROR: VPN not configured!"; sleep 120; }
     [[ -e $cert ]] || grep -Eq '^ *(<ca>|ca +)' $conf ||
         { echo "ERROR: VPN CA cert missing!"; sleep 120; }
-    set -x
     if [ ! -z "${PING_IP}" ]; then
-      /opt/scripts/start-ping.sh
+      /opt/scripts/start-ping.sh &
     fi
+    set -x
     exec sg vpn -c "openvpn --cd $dir --config $conf $ext_args \
                ${OTHER_ARGS:-} ${MSS:+--fragment $MSS --mssfix}"
 fi
