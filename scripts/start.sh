@@ -24,6 +24,10 @@ term_handler() {
 	exit 143;
 }
 
+if [ ! -z ${WATCH_PORT} ]; then
+  /opt/scripts/start-connected-containers.sh &
+fi
+
 trap 'kill ${!}; term_handler' SIGTERM
 /opt/scripts/start-server.sh &
 killpid="$!"
