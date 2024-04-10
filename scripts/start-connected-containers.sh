@@ -1,3 +1,3 @@
 #!/bin/bash
-echo "---Starting service for connected containers on port: $WATCH_PORT---"
-socat TCP-LISTEN:${WATCH_PORT},fork EXEC:"/bin/cat"
+echo "---Starting service for connected containers on port: $CONNECTED_CONTAINERS---"
+socat TCP-LISTEN:${CONNECTED_CONTAINERS},fork EXEC:"/bin/cat"
