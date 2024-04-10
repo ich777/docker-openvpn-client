@@ -4,5 +4,5 @@ while true; do
     echo "---Ping from ${PING_IP} failed, restarting container,...---"
     kill -SIGINT $(pidof openvpn)
   fi
-  sleep ${PING_INTERVAL}
+  sleep ${PING_INTERVAL}s
 done
