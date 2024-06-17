@@ -360,7 +360,7 @@ global_return_routes
 
 [[ ${DEFAULT_GATEWAY:-} == "false" ]] &&
             ext_args=$(sed 's/ --redirect-gateway def1//' <<< $ext_args)
-[[ -e $auth ]] && ext_args+=" --auth-user-pass $auth"
+[[ -e $auth ]] && chmod 0600 $auth && ext_args+=" --auth-user-pass $auth"
 [[ -e $cert_auth ]] && ext_args+=" --askpass $cert_auth"
 
 if [[ $# -ge 1 && -x $(which $1 2>/dev/null) ]]; then
